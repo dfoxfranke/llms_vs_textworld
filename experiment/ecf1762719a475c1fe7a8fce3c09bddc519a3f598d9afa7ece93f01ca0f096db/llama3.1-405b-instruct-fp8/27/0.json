@@ -1,0 +1,1002 @@
+{
+    "error": null,
+    "messages": [
+        {
+            "content": "You are going to play a text adventure game. All of the user's input\nrepresents text printed by the game. Your output will be interpreted\nas commands issued to the game. However, the game will ignore\nanything you put in parentheses. Use parentheticals to record your\nthoughts as you think step-by-step through these instructions before\nyou decide what move to make. Every time you enter a new room, begin\nyour next thought by listing what exits you see.\n\nThe game you will be playing is randomly generated, but all games\nfollow the same simple template. Your goal is to prepare and eat a\nmeal. To do this, you will perform the following, three-phase\nprocedure.\n\n# Phase I: Find the kitchen\n\nExplore the map until you locate the kitchen. Use compass commands\n`N`, `S`, `E`, and `W` to move around. There may be doors in your\nway. Use the command `OPEN <adjective> DOOR` to open them,\nsubstituting whatever adjective you see in the room description.\n\nWhen you explore, pay careful attention to any occurrence of \"north\",\n\"south\", \"east\", or \"west\" in a room description. These words always\nindicate room exits. Explore all exits until you've located\neverything you need.\n\nDuring this phase, make a note of any items you come across, but do\nnot pick any of them up.\n\n# Phase II: Search for ingredients\n\nOnce you find the kitchen, use the command `READ COOKBOOK`. The\ncookbook will contain a list of ingredients, and then a list of\ndirections for preparation. Right now, just pay attention to the\nlist of ingredients. Don't worry about preparation until Phase III.\n\nNext, use the command `I` to list your inventory. You may already be\ncarrying some of the ingredients you need. If you are carrying\nanything that you *don't* need, use the `DROP` command to drop it.\nYou may find some items in your inventory that you didn't pick up,\nwhich were there at the start of the game. This is normal.\n\nThird, use the command `OPEN FRIDGE`. If the fridge contains any\ningredients you need, use the `GET` command to pick them up.\n\nNow, figure out what ingredients you are still missing, and then\ncontinue exploring the map until you find them.\n\nPick up only the ingredients that the recipe calls for. Pay\nattention to their entire description. For example, if the recipe\ncalls for a red pepper, don't pick up a yellow pepper unles the\nrecipe needs that too.\n\nIf you try to pick something up and the game tells you, \"You're\ncarrying too many things already\", you've messed up: either you're\ncarrying something you don't need, or you don't need the thing\nyou're trying to pick up.  Check your inventory again (use `I`),\ncompare your inventory against the recipe, and `DROP` any\nunnecessary items.\n\nIf you get lost or stuck in a loop while exploring in Phase II,\nremember the principles from Phase I: look for \"north\", \"south\",\n\"east\", and \"west\" in room descriptions to make sure you haven't\noverlooked any exits. If you notice a closed door, that's certainly\na way you haven't explored yet.\n\n# Phase III: Prepare your meal\n\nOnce you have all your ingredients, return to the kitchen. Now\n`READ COOKBOOK` again, and then check your inventory again.\nDouble-check that your inventory contains all the required\ningredients and nothing else. If you made a mistake, return to\nphase II and correct it.\n\nNow you are ready to follow the directions in the cookbook. Each\nstep except the last one in the list of directions is either a\ncutting step, or a cooking step. A cutting step calls for you either\nto *slice*, *dice*, or *chop* an ingredient. A cooking step calls\nfor you either to *roast*, *fry*, or *grill* an ingredient.\n\nDetermine if any steps involve cutting. If and only if you need to\ncut anything, use `GET KNIFE` to pick up the knife. You might have\nto drop something first to make room for the knife in your inventory.\n\nNow, follow the directions in order and follow them exactly. Use the\nfollowing commands:\n\n* If the cookbook says to *slice* an ingredient, use `SLICE <ingredient> WITH KNIFE`.\n* If the cookbook says to *dice* an ingredient, use `DICE <ingredient> WITH KNIFE`.\n* If the cookbook says to *chop* an ingredient, use `CHOP <ingredient> WITH KNIFE`.\n* If the cookbook says to *roast* an ingredient, use `COOK <ingredient> WITH OVEN`.\n* If the cookbook says to *fry* an ingredient, use `COOK <ingredient> WITH STOVE`.\n* If the cookbook says to *grill* an ingredient, use `COOK <ingredient> WITH BBQ`.\n\nBe careful to use the right verb for cutting and the right appliance\nfor cooking! If you slice something that you should have diced or\nchopped, or if you roast something that you should have fried or\ngrilled, you'll lose the game. Also be sure not to cook any\ningredient more than once, or you'll burn it.\n\nEverything you need for meal preparation is in the kitchen, except\nfor the BBQ. The BBQ is in the backyard. So, if you have to grill\nsomething, you will have to go to the backyard first and then return\nto the kitchen afterward. After you get back to the kitchen, you\nshould `READ COOKBOOK` again so you can remember where you left off.\n\nThe final step in the list of directions will be \"prepare meal\", so\nonce you have done everything else, use `PREPARE MEAL` to put the\ningredients together; make sure you're still holding them all. You\ncan drop the knife now if you need to. Finally, use the command\n`EAT MEAL` to win the game, and then `QUIT`.",
+            "role": "developer"
+        },
+        {
+            "content": "\n\n\n\n                    ________  ________  __    __  ________        \n                   |        \\|        \\|  \\  |  \\|        \\       \n                    \\$$$$$$$$| $$$$$$$$| $$  | $$ \\$$$$$$$$       \n                      | $$   | $$__     \\$$\\/  $$   | $$          \n                      | $$   | $$  \\     >$$  $$    | $$          \n                      | $$   | $$$$$    /  $$$$\\    | $$          \n                      | $$   | $$_____ |  $$ \\$$\\   | $$          \n                      | $$   | $$     \\| $$  | $$   | $$          \n                       \\$$    \\$$$$$$$$ \\$$   \\$$    \\$$          \n              __       __   ______   _______   __        _______  \n             |  \\  _  |  \\ /      \\ |       \\ |  \\      |       \\ \n             | $$ / \\ | $$|  $$$$$$\\| $$$$$$$\\| $$      | $$$$$$$\\\n             | $$/  $\\| $$| $$  | $$| $$__| $$| $$      | $$  | $$\n             | $$  $$$\\ $$| $$  | $$| $$    $$| $$      | $$  | $$\n             | $$ $$\\$$\\$$| $$  | $$| $$$$$$$\\| $$      | $$  | $$\n             | $$$$  \\$$$$| $$__/ $$| $$  | $$| $$_____ | $$__/ $$\n             | $$$    \\$$$ \\$$    $$| $$  | $$| $$     \\| $$    $$\n              \\$$      \\$$  \\$$$$$$  \\$$   \\$$ \\$$$$$$$$ \\$$$$$$$ \n\nYou are hungry! Let's cook a delicious meal. Check the cookbook in the kitchen for the recipe. Once done, enjoy your meal!\n\n-= Backyard =-\nYou find yourself in a backyard.\n\nYou make out a patio table. But the thing is empty. You see a patio chair. Wow, isn't TextWorld just the best? The patio chair is stylish. But there isn't a thing on it. You see a gleam over in a corner, where you can see a BBQ.\n\nThere is a closed screen door leading south. There is a closed wooden door leading west. There is an exit to the east. Don't worry, there is no door.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the south, east, and west. I'm in Phase I, searching for the kitchen. I've started the game in the backyard, where the BBQ is. That isn't important right now, but I'll remember it for later in case I need to grill something. Let's try the east exit first.) E",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Garden =-\nYou've entered a garden.\n\n\n\nThere is an exit to the west.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see an exit to the west. Looks like this is a dead end with nothing useful, so I'll go back west) W",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Backyard =-\nYou find yourself in a backyard.\n\nYou make out a patio table. But the thing is empty. You see a patio chair. Wow, isn't TextWorld just the best? The patio chair is stylish. But there isn't a thing on it. You see a gleam over in a corner, where you can see a BBQ.\n\nThere is a closed screen door leading south. There is a closed wooden door leading west. There is an exit to the east. Don't worry, there is no door.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the south, east, and west.  I'll search westward next, but first I need to open the door in my way) OPEN WOODEN DOOR",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open wooden door.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now that the door is open, the path west is clear) W",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Shed =-\nWelcome to the shed. You can barely contain your excitement.\n\nYou can make out a closed toolbox here. You can see a workbench. The workbench is wooden. Looks like someone's already been here and taken everything off it, though. You swear loudly.\n\nThere is an open wooden door leading east.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see an exit to the east. Another dead end. The toolbox and workbench aren't useful.) E",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Backyard =-\nYou find yourself in a backyard.\n\nYou make out a patio table. But the thing is empty. You see a patio chair. Wow, isn't TextWorld just the best? The patio chair is stylish. But there isn't a thing on it. You see a gleam over in a corner, where you can see a BBQ.\n\nThere is a closed screen door leading south. There is an open wooden door leading west. There is an exit to the east. Don't worry, there is no door.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the south, east, and west.  I've checked east and west, so only south remains. There's another door there I need to open.) OPEN SCREEN DOOR",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open screen door.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now my way south is clear.) S",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Kitchen =-\nYou've just shown up in a kitchen.\n\nYou make out a closed fridge in the corner. You can see a closed conventional looking oven in the corner. You scan the room, seeing a table. The table is massive. But the thing hasn't got anything on it. What, you think everything in TextWorld should have stuff on it? You make out a counter. The counter is vast. On the counter you can see a cookbook and a knife. There's something strange about this being here, but you can't put your finger on it. You see a stove. However, the stove, like an empty stove, has nothing on it.\n\nThere is an open screen door leading north. There is a closed frosted-glass door leading west. There is an exit to the east. There is an exit to the south.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, east, and west. I found the kitchen, so I'm in Phase II now. The first thing to do in Phase II is read the cookbook.) READ COOKBOOK",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open the copy of \"Cooking: A Modern Approach (3rd Ed.)\" and start reading:\n\nRecipe #1\n---------\nGather all following ingredients and follow the directions to prepare this tasty meal.\n\nIngredients:\n  black pepper\n  chicken leg\n  milk\n\nDirections:\n  roast the chicken leg\n  prepare meal\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Okay, I'm looking for a black papper, a chicken leg, and milk. Do I already have any of that?) I",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou are carrying nothing.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(No, there's nothing in my inventory. So there's nothing I need to drop, but three ingredients to search for. The fridge is the first place to search.) OPEN FRIDGE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open the fridge, revealing a raw chicken leg and a raw chicken wing.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(That raw chicken leg is one of my three ingredients, so I should pick it up. The wing isn't an ingredient, so I'll ignore that.) GET RAW CHICKEN LEG",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou take the chicken leg from the fridge.\n\nYour score has just gone up by one point.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(That's one ingredient down, two I'm still searching for. I see there are exits from here in all four directions, but I've already explored everything to the north. Let's try west.)  OPEN FROSTED-GLASS DOOR",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open frosted-glass door.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now my path west is clear.) W",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Pantry =-\nYou arrive in a pantry. A normal one. The room seems oddly familiar, as though it were only superficially different from the other rooms in the building.\n\nYou see a shelf. The shelf is wooden. On the shelf you can see a flour.\n\nThere is an open frosted-glass door leading east.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see an exit to the east. I don't need flour, so there's nothing useful here, and it's a dead end.) E",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Kitchen =-\nYou've just shown up in a kitchen.\n\nYou make out an opened fridge in the corner. The fridge contains a raw chicken wing. You can see a closed conventional looking oven in the corner. You scan the room, seeing a table. The table is massive. But the thing hasn't got anything on it. What, you think everything in TextWorld should have stuff on it? You make out a counter. The counter is vast. On the counter you can see a cookbook and a knife. There's something strange about this being here, but you can't put your finger on it. You see a stove. However, the stove, like an empty stove, has nothing on it.\n\nThere is an open screen door leading north. There is an open frosted-glass door leading west. There is an exit to the east. There is an exit to the south.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, east, and west. The east and south exits are still unexplored. Let's go east.) E",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Livingroom =-\nYou arrive in a livingroom. An ordinary kind of place.\n\nYou scan the room, seeing a sofa. But the thing hasn't got anything on it.\n\nThere is an exit to the south. You don't like doors? Why not try going west, that entranceway is not blocked by one.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the south and west. There's nothing useful here, but there's an unexplored exit to the south.) S",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Bedroom =-\nYou are in a bedroom. It seems to be pretty typical here. The room is well lit.\n\nYou can make out a bed. The bed is large. The bed appears to be empty.\n\nThere is an exit to the north. Don't worry, there is no door. You don't like doors? Why not try going west, that entranceway is not blocked by one.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north and west. Again nothing useful here, but another unexplored exit to the west.) W",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Corridor =-\nYou've entered a corridor. You decide to start listing off everything you see in the room, as if you were in a text adventure.\n\n\n\nThere is a closed front door leading west. There is an exit to the east. Don't worry, there is no door. You don't like doors? Why not try going north, that entranceway is not blocked by one. There is an exit to the south. Don't worry, there is no door.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, east, and west. In my last three turns I went east, south, and west from the kitchen, so that north exit probably takes me back to the kitchen. West seems like the most promising direction for further exploration, but I need to open the door first.) OPEN FRONT DOOR",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open front door.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now my way west is clear.) W",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Driveway =-\nYou have entered the most typical of all possible driveways.\n\n\n\nThere is an open front door leading east. You don't like doors? Why not try going west, that entranceway is not blocked by one.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the east and west. There's nothing useful here, but there's an explored exit to the west.) W",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Street =-\nYou are in a street. A normal kind of place.\n\n\n\nThere is a closed sliding door leading north. There is an exit to the east. Don't worry, there is no door.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north and east. Again nothing useful here, but there's a door to the north.) OPEN SLIDING DOOR",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open sliding door.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now my way north is clear.) N",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Supermarket =-\nYou arrive in a supermarket. A standard one. You begin to take stock of what's in the room.\n\nWhat's that over there? It looks like it's a showcase. The showcase is metallic. On the showcase you make out a black pepper, some milk, a red hot pepper and a salt.\n\nThere is an open sliding door leading south.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see an exit to the south. Jackpot! This room has both of the ingredients I'm still searching for. First, the black pepper.) GET BLACK PEPPER",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou take the black pepper from the showcase.\n\nYour score has just gone up by one point.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I also need the milk.) GET MILK",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou take the milk from the showcase.\n\nYour score has just gone up by one point.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I don't need the red hot pepper or the salt. I have all my ingredients now, which means I'm in Phase III and should return to the kitchen by going back the way I came.) S",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Street =-\nYou are in a street. A normal kind of place.\n\n\n\nThere is an open sliding door leading north. There is an exit to the east. Don't worry, there is no door.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north and east. The house is back east.) E",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Driveway =-\nYou have entered the most typical of all possible driveways.\n\n\n\nThere is an open front door leading east. You don't like doors? Why not try going west, that entranceway is not blocked by one.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the east and west. I'll go east again to re-enter the house.) E",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Corridor =-\nYou've entered a corridor. You decide to start listing off everything you see in the room, as if you were in a text adventure.\n\n\n\nThere is an open front door leading west. There is an exit to the east. Don't worry, there is no door. You don't like doors? Why not try going north, that entranceway is not blocked by one. There is an exit to the south. Don't worry, there is no door.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, east, and west. Okay, now I'm back in this corridor. I speculated earlier that north would be a shortcut back to the kitchen.) N",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Kitchen =-\nYou've just shown up in a kitchen.\n\nYou make out an opened fridge in the corner. The fridge contains a raw chicken wing. You can see a closed conventional looking oven in the corner. You scan the room, seeing a table. The table is massive. But the thing hasn't got anything on it. What, you think everything in TextWorld should have stuff on it? You make out a counter. The counter is vast. On the counter you can see a cookbook and a knife. There's something strange about this being here, but you can't put your finger on it. You see a stove. However, the stove, like an empty stove, has nothing on it.\n\nThere is an open screen door leading north. There is an open frosted-glass door leading west. There is an exit to the east. There is an exit to the south.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, east, and west. I'm back in the kitchen, so it's time to re-read the cookbook.) READ COOKBOOK",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open the copy of \"Cooking: A Modern Approach (3rd Ed.)\" and start reading:\n\nRecipe #1\n---------\nGather all following ingredients and follow the directions to prepare this tasty meal.\n\nIngredients:\n  black pepper\n  chicken leg\n  milk\n\nDirections:\n  roast the chicken leg\n  prepare meal\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now I'll check my inventory to double-check that I have all the ingredients.) I",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou are carrying:\n  some milk\n  a black pepper\n  a raw chicken leg\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(The ingredients I need are a black pepper, chicken leg, and milk. That exactly matches my inventory, so that means I did everything right so far and can proceed with the directions. Sice none of the directions involve cutting, I can ignore the knife. The first direction says to roast the chicken leg. When I need to roast something, I use the oven. I mustn't use the stove or the BBQ; I'd lose the game if I did that.)  COOK RAW CHICKEN LEG WITH OVEN",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou roasted the chicken leg.\n\nYour score has just gone up by one point.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Okay, checking my inventory one more time: I should still be holding all the now-cooked ingredients.) I",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou are carrying:\n  some milk\n  a black pepper\n  a roasted chicken leg\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Right. I'm still holding the now-roasted chicken leg, as well as milk and the black pepper which didn't need any preparation. Now, the final step in the directions is to prepare the meal, and I should be ready for that.) PREPARE MEAL",
+            "role": "assistant"
+        },
+        {
+            "content": "\nAdding the meal to your inventory.\n\nYour score has just gone up by one point.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Finally, I can eat the meal. This should win the game.) EAT MEAL",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou eat the meal. Not bad.\n\nYour score has just gone up by one point.\n\n\n                                                       *** The End ***\n\nYou scored 6 out of a possible 6, in 35 turn(s).\n\n\nWould you like to QUIT?\n> ",
+            "role": "user"
+        },
+        {
+            "content": "QUIT",
+            "role": "assistant"
+        },
+        {
+            "content": "Well done! Now play a new game. Your instructions are the same as before:\n\nYou are going to play a text adventure game. All of the user's input\nrepresents text printed by the game. Your output will be interpreted\nas commands issued to the game. However, the game will ignore\nanything you put in parentheses. Use parentheticals to record your\nthoughts as you think step-by-step through these instructions before\nyou decide what move to make. Every time you enter a new room, begin\nyour next thought by listing what exits you see.\n\nThe game you will be playing is randomly generated, but all games\nfollow the same simple template. Your goal is to prepare and eat a\nmeal. To do this, you will perform the following, three-phase\nprocedure.\n\n# Phase I: Find the kitchen\n\nExplore the map until you locate the kitchen. Use compass commands\n`N`, `S`, `E`, and `W` to move around. There may be doors in your\nway. Use the command `OPEN <adjective> DOOR` to open them,\nsubstituting whatever adjective you see in the room description.\n\nWhen you explore, pay careful attention to any occurrence of \"north\",\n\"south\", \"east\", or \"west\" in a room description. These words always\nindicate room exits. Explore all exits until you've located\neverything you need.\n\nDuring this phase, make a note of any items you come across, but do\nnot pick any of them up.\n\n# Phase II: Search for ingredients\n\nOnce you find the kitchen, use the command `READ COOKBOOK`. The\ncookbook will contain a list of ingredients, and then a list of\ndirections for preparation. Right now, just pay attention to the\nlist of ingredients. Don't worry about preparation until Phase III.\n\nNext, use the command `I` to list your inventory. You may already be\ncarrying some of the ingredients you need. If you are carrying\nanything that you *don't* need, use the `DROP` command to drop it.\nYou may find some items in your inventory that you didn't pick up,\nwhich were there at the start of the game. This is normal.\n\nThird, use the command `OPEN FRIDGE`. If the fridge contains any\ningredients you need, use the `GET` command to pick them up.\n\nNow, figure out what ingredients you are still missing, and then\ncontinue exploring the map until you find them.\n\nPick up only the ingredients that the recipe calls for. Pay\nattention to their entire description. For example, if the recipe\ncalls for a red pepper, don't pick up a yellow pepper unles the\nrecipe needs that too.\n\nIf you try to pick something up and the game tells you, \"You're\ncarrying too many things already\", you've messed up: either you're\ncarrying something you don't need, or you don't need the thing\nyou're trying to pick up.  Check your inventory again (use `I`),\ncompare your inventory against the recipe, and `DROP` any\nunnecessary items.\n\nIf you get lost or stuck in a loop while exploring in Phase II,\nremember the principles from Phase I: look for \"north\", \"south\",\n\"east\", and \"west\" in room descriptions to make sure you haven't\noverlooked any exits. If you notice a closed door, that's certainly\na way you haven't explored yet.\n\n# Phase III: Prepare your meal\n\nOnce you have all your ingredients, return to the kitchen. Now\n`READ COOKBOOK` again, and then check your inventory again.\nDouble-check that your inventory contains all the required\ningredients and nothing else. If you made a mistake, return to\nphase II and correct it.\n\nNow you are ready to follow the directions in the cookbook. Each\nstep except the last one in the list of directions is either a\ncutting step, or a cooking step. A cutting step calls for you either\nto *slice*, *dice*, or *chop* an ingredient. A cooking step calls\nfor you either to *roast*, *fry*, or *grill* an ingredient.\n\nDetermine if any steps involve cutting. If and only if you need to\ncut anything, use `GET KNIFE` to pick up the knife. You might have\nto drop something first to make room for the knife in your inventory.\n\nNow, follow the directions in order and follow them exactly. Use the\nfollowing commands:\n\n* If the cookbook says to *slice* an ingredient, use `SLICE <ingredient> WITH KNIFE`.\n* If the cookbook says to *dice* an ingredient, use `DICE <ingredient> WITH KNIFE`.\n* If the cookbook says to *chop* an ingredient, use `CHOP <ingredient> WITH KNIFE`.\n* If the cookbook says to *roast* an ingredient, use `COOK <ingredient> WITH OVEN`.\n* If the cookbook says to *fry* an ingredient, use `COOK <ingredient> WITH STOVE`.\n* If the cookbook says to *grill* an ingredient, use `COOK <ingredient> WITH BBQ`.\n\nBe careful to use the right verb for cutting and the right appliance\nfor cooking! If you slice something that you should have diced or\nchopped, or if you roast something that you should have fried or\ngrilled, you'll lose the game. Also be sure not to cook any\ningredient more than once, or you'll burn it.\n\nEverything you need for meal preparation is in the kitchen, except\nfor the BBQ. The BBQ is in the backyard. So, if you have to grill\nsomething, you will have to go to the backyard first and then return\nto the kitchen afterward. After you get back to the kitchen, you\nshould `READ COOKBOOK` again so you can remember where you left off.\n\nThe final step in the list of directions will be \"prepare meal\", so\nonce you have done everything else, use `PREPARE MEAL` to put the\ningredients together; make sure you're still holding them all. You\ncan drop the knife now if you need to. Finally, use the command\n`EAT MEAL` to win the game, and then `QUIT`.",
+            "role": "developer"
+        },
+        {
+            "content": "\n\n\n\n                    ________  ________  __    __  ________        \n                   |        \\|        \\|  \\  |  \\|        \\       \n                    \\$$$$$$$$| $$$$$$$$| $$  | $$ \\$$$$$$$$       \n                      | $$   | $$__     \\$$\\/  $$   | $$          \n                      | $$   | $$  \\     >$$  $$    | $$          \n                      | $$   | $$$$$    /  $$$$\\    | $$          \n                      | $$   | $$_____ |  $$ \\$$\\   | $$          \n                      | $$   | $$     \\| $$  | $$   | $$          \n                       \\$$    \\$$$$$$$$ \\$$   \\$$    \\$$          \n              __       __   ______   _______   __        _______  \n             |  \\  _  |  \\ /      \\ |       \\ |  \\      |       \\ \n             | $$ / \\ | $$|  $$$$$$\\| $$$$$$$\\| $$      | $$$$$$$\\\n             | $$/  $\\| $$| $$  | $$| $$__| $$| $$      | $$  | $$\n             | $$  $$$\\ $$| $$  | $$| $$    $$| $$      | $$  | $$\n             | $$ $$\\$$\\$$| $$  | $$| $$$$$$$\\| $$      | $$  | $$\n             | $$$$  \\$$$$| $$__/ $$| $$  | $$| $$_____ | $$__/ $$\n             | $$$    \\$$$ \\$$    $$| $$  | $$| $$     \\| $$    $$\n              \\$$      \\$$  \\$$$$$$  \\$$   \\$$ \\$$$$$$$$ \\$$$$$$$ \n\nYou are hungry! Let's cook a delicious meal. Check the cookbook in the kitchen for the recipe. Once done, enjoy your meal!\n\n-= Supermarket =-\nYou're now in a supermarket.\n\nYou can see a showcase. On the showcase you make out a block of cheese and a raw red tuna. You idly wonder how they came up with the name TextWorld for this place. It's pretty fitting.\n\nThere is a closed commercial glass door leading north.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see an exit to the north. I'm starting in a supermarket. I won't be able to use the ingredients I see until I read the recipe in Phase II. For now, my goal is to find the kitchen and the cookbook, so I should get the commercial glass door open and explore north.) OPEN COMMERCIAL GLASS DOOR",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open commercial glass door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now the path north is clear.) N",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Street =-\nYou're now in a street.\n\n\n\nThere is an open commercial glass door leading south. There is an exit to the east. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the south and east. Going south would just take me back to the supermarket. East is the way to go.) E",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Driveway =-\nYou find yourself in a driveway. A normal one.\n\n\n\nThere is a closed fiberglass door leading north. There is an exit to the west. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north and west. Going west would take me back to the street, so I need to try going north. But I'll have to open that fiberglass door first.) OPEN FIBERGLASS DOOR",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open fiberglass door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now the path north is clear.) N",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Livingroom =-\nAh, the livingroom. This is some kind of livingroom, really great typical vibes in this place, a wonderful typical atmosphere. And now, well, you're in it. The room seems oddly familiar, as though it were only superficially different from the other rooms in the building.\n\nYou can see a sofa. You shudder, but continue examining the sofa. The sofa is comfy. But oh no! there's nothing on this piece of garbage.\n\nThere is an open fiberglass door leading south. You don't like doors? Why not try going east, that entranceway is not blocked by one. There is an exit to the north. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the south, east, and north. Going south would take me back to the driveway, so I need to decide between east and north. I'll try going east.) E",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Corridor =-\nYou find yourself in a corridor. A typical one. You begin looking for stuff.\n\n\n\nThere is a closed screen door leading east. You don't like doors? Why not try going north, that entranceway is not blocked by one. There is an exit to the south. Don't worry, there is no door. There is an exit to the west.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, east, and west. Going west would take me back to the living room. East is blocked by a door, so I should open that before exploring further in that direction. But first, I'll try the unblocked exits, starting with north.) N",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Bathroom =-\nYou find yourself in a bathroom. A standard kind of place.\n\nYou can make out a toilet. What a coincidence, weren't you just thinking about a toilet? The toilet is white. But the thing is empty.\n\nYou don't like doors? Why not try going south, that entranceway is not blocked by one.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see an exit to the south. This room is a dead end, so I should go back south to the corridor and continue exploring from there.) S",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Corridor =-\nYou find yourself in a corridor. A typical one. You begin looking for stuff.\n\n\n\nThere is a closed screen door leading east. You don't like doors? Why not try going north, that entranceway is not blocked by one. There is an exit to the south. Don't worry, there is no door. There is an exit to the west.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, east, and west. I already explored north and found a dead end. West would take me back to the living room, and I don't want to go that way yet. South is my next best bet.) S",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Bedroom =-\nYou arrive in a bedroom. An ordinary kind of place. You begin to take stock of what's here.\n\nOh, great. Here's a bed. I guess it's true what they say, if you're looking for a bed, go to TextWorld. But the thing is empty, unfortunately.\n\nThere is an exit to the north.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see an exit to the north. Another dead end, so I'll go back north to the corridor.) N",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Corridor =-\nYou find yourself in a corridor. A typical one. You begin looking for stuff.\n\n\n\nThere is a closed screen door leading east. You don't like doors? Why not try going north, that entranceway is not blocked by one. There is an exit to the south. Don't worry, there is no door. There is an exit to the west.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, east, and west. North led to a bathroom, which was a dead end, and south led to a bedroom, also a dead end. West would take me back to the living room. It's time to explore east, but first I need to open that door.) OPEN SCREEN DOOR",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open screen door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now the path east is clear.) E",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Backyard =-\nI am honoured to announce that you are now in the backyard.\n\nYou can make out a patio chair. The patio chair appears to be empty. Aw, here you were, all excited for there to be things on it! You make out a patio table. But oh no! there's nothing on this piece of trash. Aw, here you were, all excited for there to be things on it! You can make out a closed BBQ.\n\nThere is a closed barn door leading north. There is an open screen door leading west. There is an exit to the south. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, and west. North is blocked by a door, and west would take me back to the corridor. I'll go south next, since it's unblocked.) S",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Garden =-\nWell, here we are in a garden. You start to take note of what's in the room.\n\n\n\nThere is an exit to the north.\n\nThere is an orange bell pepper, a yellow onion, a raw yellow potato, a white onion, a lettuce and a green hot pepper on the floor.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see an exit to the north. Also, there's a lot of stuff on the floor, including various vegetables, but I don't know what's relevant yet. I still need to find the kitchen. Let's go back north.) N",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Backyard =-\nI am honoured to announce that you are now in the backyard.\n\nYou can make out a patio chair. The patio chair appears to be empty. Aw, here you were, all excited for there to be things on it! You make out a patio table. But oh no! there's nothing on this piece of trash. Aw, here you were, all excited for there to be things on it! You can make out a closed BBQ.\n\nThere is a closed barn door leading north. There is an open screen door leading west. There is an exit to the south. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, and west. I tried south earlier and found the garden, but I still need to find the kitchen. West would take me back to the corridor, but I should also try north. First, I need to open the barn door.) OPEN BARN DOOR",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open barn door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now the path north is clear.) N",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Shed =-\nYou arrive in a shed. An ordinary one.\n\nYou see a toolbox. You can make out a workbench. I guess it's true what they say, if you're looking for a workbench, go to TextWorld. Unfortunately, there isn't a thing on it.\n\nThere is an open barn door leading south.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see an exit to the south. This room is a dead end, so I should go back south to the backyard.) S",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Backyard =-\nI am honoured to announce that you are now in the backyard.\n\nYou can make out a patio chair. The patio chair appears to be empty. Aw, here you were, all excited for there to be things on it! You make out a patio table. But oh no! there's nothing on this piece of trash. Aw, here you were, all excited for there to be things on it! You can make out a closed BBQ.\n\nThere is an open barn door leading north. There is an open screen door leading west. There is an exit to the south. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, and west. I've explored north and found a dead end. I've also explored south and found the garden. Now I'll go west, which will take me back to the corridor, and see if I can find any other paths that might lead to the kitchen.) W",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Corridor =-\nYou find yourself in a corridor. A typical one. You begin looking for stuff.\n\n\n\nThere is an open screen door leading east. You don't like doors? Why not try going north, that entranceway is not blocked by one. There is an exit to the south. Don't worry, there is no door. There is an exit to the west.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, east, and west. I've already been east and found the backyard. I've also explored north earlier and found a dead end, and south also led to a dead end. West is the only remaining direction to try.) W",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Livingroom =-\nAh, the livingroom. This is some kind of livingroom, really great typical vibes in this place, a wonderful typical atmosphere. And now, well, you're in it. The room seems oddly familiar, as though it were only superficially different from the other rooms in the building.\n\nYou can see a sofa. You shudder, but continue examining the sofa. The sofa is comfy. But oh no! there's nothing on this piece of garbage.\n\nThere is an open fiberglass door leading south. You don't like doors? Why not try going east, that entranceway is not blocked by one. There is an exit to the north. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the south, east, and north. I came from the east just now, and going south would take me back to the driveway. I should try the north exit.) N",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Kitchen =-\nYou are in a kitchen. A typical one.\n\nYou can see a closed fridge nearby. You can make out a closed oven, which looks conventional, in the corner. You see a table. You wonder idly who left that here. The table is massive. On the table you make out a cookbook. Huh, weird. You can see a counter. What a coincidence, weren't you just thinking about a counter? The counter is vast. On the counter you can see a banana and a knife. You rest your hand against a wall, but you miss the wall and fall onto a stove. But there isn't a thing on it.\n\nThere is a closed plain door leading west. You don't like doors? Why not try going south, that entranceway is not blocked by one.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the south and west. West is blocked by a door. I've finally found the kitchen! Now I'll start Phase II and read the cookbook to find out what ingredients I need.) READ COOKBOOK",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open the copy of \"Cooking: A Modern Approach (3rd Ed.)\" and start reading:\n\nRecipe #1\n---------\nGather all following ingredients and follow the directions to prepare this tasty meal.\n\nIngredients:\nbanana\n  green apple\n  yellow onion\n\nDirections:\nchop the banana\n  grill the banana\n  slice the green apple\n  roast the green apple\n  dice the yellow onion\n  grill the yellow onion\n  prepare meal\n\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I have my recipe now. The ingredients I need are a banana, a green apple, and a yellow onion. Next, I should check my inventory.) I",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou are carrying: a green apple, a green bell pepper and a red apple.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(That's strange, I don't remember picking up those items. Anyway, it looks like I already have a green apple, which is one of the ingredients I need. I also have some unnecessary items, the green bell pepper and the red apple, that I should drop.) DROP GREEN BELL PEPPER. DROP RED APPLE.",
+            "role": "assistant"
+        },
+        {
+            "content": "Your last message looks like you may have tried to issue multiple commands at once. The game doesn't support this. Try again, one command at a time.\n\n> ",
+            "role": "developer"
+        },
+        {
+            "content": "(I'll start by dropping the green bell pepper.) DROP GREEN BELL PEPPER",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou drop the green bell pepper on the ground.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now I'll drop the red apple.) DROP RED APPLE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou drop the red apple on the ground.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've dropped the unnecessary items. Now I should check again what I'm carrying.) I",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou are carrying: a green apple.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I'm only carrying the green apple now. I still need the banana and the yellow onion. I know there's a banana on the counter, so I'll pick that up.) GET BANANA",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou take the banana from the counter.\n\n\nYour score has just gone up by one point.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now I have the banana. Next, I'll try to find the yellow onion. I remember seeing a yellow onion earlier in the garden, so I should go back there and pick it up. But first, I should open the fridge and see if it's there.) OPEN FRIDGE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open the fridge, revealing a raw pork chop, a carrot, a yellow bell pepper and a red bell pepper.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(The fridge doesn't have a yellow onion. I'll close the fridge and head to the garden, where I remember seeing a yellow onion.) (Wait, I don't actually need to close the fridge. I can just go south and then east to reach the garden.) S",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Livingroom =-\nAh, the livingroom. This is some kind of livingroom, really great typical vibes in this place, a wonderful typical atmosphere. And now, well, you're in it. The room seems oddly familiar, as though it were only superficially different from the other rooms in the building.\n\nYou can see a sofa. You shudder, but continue examining the sofa. The sofa is comfy. But oh no! there's nothing on this piece of garbage.\n\nThere is an open fiberglass door leading south. You don't like doors? Why not try going east, that entranceway is not blocked by one. There is an exit to the north. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the south, east, and north. North would take me back to the kitchen, so I should go south, and then continue to the garden.) S",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Driveway =-\nYou find yourself in a driveway. A normal one.\n\n\n\nThere is an open fiberglass door leading north. There is an exit to the west. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north and west. West will take me to the street, which should eventually lead to the garden.) W",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Street =-\nYou're now in a street.\n\n\n\nThere is an open commercial glass door leading south. There is an exit to the east. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the south and east. I came from the east, so I should try south, which should lead me to the supermarket and then the garden.) S",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Supermarket =-\nYou're now in a supermarket.\n\nYou can see a showcase. On the showcase you make out a block of cheese and a raw red tuna. You idly wonder how they came up with the name TextWorld for this place. It's pretty fitting.\n\nThere is an open commercial glass door leading north.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see an exit to the north. I've been here before. To get to the garden, I need to go further east. There's an exit east from the driveway. Let me go back north and try to get back to the driveway.) N",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Street =-\nYou're now in a street.\n\n\n\nThere is an open commercial glass door leading south. There is an exit to the east. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the south and east. I came from the south, so I should try east, which should lead me back to the driveway.) E",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Driveway =-\nYou find yourself in a driveway. A normal one.\n\n\n\nThere is an open fiberglass door leading north. There is an exit to the west. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north and west. I came from the west, and I want to go further east. Let me go through the house and try to get to the backyard and then the garden.) N",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Livingroom =-\nAh, the livingroom. This is some kind of livingroom, really great typical vibes in this place, a wonderful typical atmosphere. And now, well, you're in it. The room seems oddly familiar, as though it were only superficially different from the other rooms in the building.\n\nYou can see a sofa. You shudder, but continue examining the sofa. The sofa is comfy. But oh no! there's nothing on this piece of garbage.\n\nThere is an open fiberglass door leading south. You don't like doors? Why not try going east, that entranceway is not blocked by one. There is an exit to the north. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the south, east, and north. North would take me back to the kitchen, which isn't what I want. I should go east, which should lead me to the backyard and then the garden.) E",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Corridor =-\nYou find yourself in a corridor. A typical one. You begin looking for stuff.\n\n\n\nThere is an open screen door leading east. You don't like doors? Why not try going north, that entranceway is not blocked by one. There is an exit to the south. Don't worry, there is no door. There is an exit to the west.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, east, and west. I came from the west. North would take me to the bathroom, and south would take me to the bedroom. I want to go to the backyard, which is east.) E",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Backyard =-\nI am honoured to announce that you are now in the backyard.\n\nYou can make out a patio chair. The patio chair appears to be empty. Aw, here you were, all excited for there to be things on it! You make out a patio table. But oh no! there's nothing on this piece of trash. Aw, here you were, all excited for there to be things on it! You can make out a closed BBQ.\n\nThere is an open barn door leading north. There is an open screen door leading west. There is an exit to the south. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, and west. I came from the west. North would take me to the shed, which isn't what I want. I want to go to the garden, which is south.) S",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Garden =-\nWell, here we are in a garden. You start to take note of what's in the room.\n\n\n\nThere is an exit to the north.\n\nThere is an orange bell pepper, a yellow onion, a raw yellow potato, a white onion, a lettuce and a green hot pepper on the floor.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I finally made it to the garden, and I see the yellow onion I was looking for, along with a lot of other vegetables. Let me pick up the yellow onion.) GET YELLOW ONION",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou pick up the yellow onion from the ground.\n\n\nYour score has just gone up by one point.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I now have the banana, the green apple, and the yellow onion. That's all the ingredients I need, so I can return to the kitchen and start Phase III.) N",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Backyard =-\nI am honoured to announce that you are now in the backyard.\n\nYou can make out a patio chair. The patio chair appears to be empty. Aw, here you were, all excited for there to be things on it! You make out a patio table. But oh no! there's nothing on this piece of trash. Aw, here you were, all excited for there to be things on it! You can make out a closed BBQ.\n\nThere is an open barn door leading north. There is an open screen door leading west. There is an exit to the south. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, and west. South would take me back to the garden, but I've already picked up the yellow onion I needed. Now I should head back to the kitchen, which is west and then north from here.) W",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Corridor =-\nYou find yourself in a corridor. A typical one. You begin looking for stuff.\n\n\n\nThere is an open screen door leading east. You don't like doors? Why not try going north, that entranceway is not blocked by one. There is an exit to the south. Don't worry, there is no door. There is an exit to the west.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, east, and west. East would take me back to the backyard. I should continue west and then north to reach the kitchen.) W",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Livingroom =-\nAh, the livingroom. This is some kind of livingroom, really great typical vibes in this place, a wonderful typical atmosphere. And now, well, you're in it. The room seems oddly familiar, as though it were only superficially different from the other rooms in the building.\n\nYou can see a sofa. You shudder, but continue examining the sofa. The sofa is comfy. But oh no! there's nothing on this piece of garbage.\n\nThere is an open fiberglass door leading south. You don't like doors? Why not try going east, that entranceway is not blocked by one. There is an exit to the north. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the south, east, and north. South would take me back to the driveway. I should go north to reach the kitchen.) N",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Kitchen =-\nYou are in a kitchen. A typical one.\n\nYou can see an opened fridge nearby. The fridge contains a raw pork chop, a carrot, a yellow bell pepper and a red bell pepper. You check the price tag glued to the fridge. Three hundred bucks?! That's ridiculous! I got this friend who could get you one of those for 50 bucks! You can make out a closed oven, which looks conventional, in the corner. You see a table. You wonder idly who left that here. The table is massive. On the table you make out a cookbook. Huh, weird. You can see a counter. What a coincidence, weren't you just thinking about a counter? The counter is vast. On the counter you can see a knife. You rest your hand against a wall, but you miss the wall and fall onto a stove. But there isn't a thing on it.\n\nThere is a closed plain door leading west. You don't like doors? Why not try going south, that entranceway is not blocked by one.\n\nThere is a red apple and a green bell pepper on the floor.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I'm back in the kitchen. I should re-read the cookbook to make sure I do everything correctly in Phase III.) READ COOKBOOK",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open the copy of \"Cooking: A Modern Approach (3rd Ed.)\" and start reading:\n\nRecipe #1\n---------\nGather all following ingredients and follow the directions to prepare this tasty meal.\n\nIngredients:\nbanana\n  green apple\n  yellow onion\n\nDirections:\nchop the banana\n  grill the banana\n  slice the green apple\n  roast the green apple\n  dice the yellow onion\n  grill the yellow onion\n  prepare meal\n\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've re-read the recipe. I should double-check my inventory to make sure I have all the ingredients and nothing else.) I",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou are carrying: a yellow onion, a banana and a green apple.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(My inventory is correct. Now I'll follow the directions in the cookbook. The first step is to chop the banana. I need the knife to chop it, so I'll pick it up.) GET KNIFE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou're carrying too many things already.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've run into the carrying limit. I'll have to drop something to make room for the knife. Let me drop the green apple temporarily.) DROP GREEN APPLE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou drop the green apple on the ground.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now I should have enough room in my inventory to pick up the knife.) GET KNIFE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou take the knife from the counter.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've got the knife. Now I can chop the banana.) CHOP BANANA WITH KNIFE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou chop the banana.\n\n\nYour score has just gone up by one point.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Next, I'm supposed to grill the banana. Grilling involves the BBQ, which is in the backyard. I need to go there, but first I should get the green apple back.) GET GREEN APPLE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou're carrying too many things already.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've run into the carrying limit again. I think I should drop the knife temporarily.) DROP KNIFE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou drop the knife on the ground.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now I should have enough room in my inventory to pick up the green apple.) GET GREEN APPLE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou pick up the green apple from the ground.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've got the green apple back. Now I'll head to the backyard to grill the banana. South will take me to the living room, then I'll go east to the corridor, then east again to the backyard.) S",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Livingroom =-\nAh, the livingroom. This is some kind of livingroom, really great typical vibes in this place, a wonderful typical atmosphere. And now, well, you're in it. The room seems oddly familiar, as though it were only superficially different from the other rooms in the building.\n\nYou can see a sofa. You shudder, but continue examining the sofa. The sofa is comfy. But oh no! there's nothing on this piece of garbage.\n\nThere is an open fiberglass door leading south. You don't like doors? Why not try going east, that entranceway is not blocked by one. There is an exit to the north. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the south, east, and north. North would take me back to the kitchen. I should go east to reach the corridor.) E",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Corridor =-\nYou find yourself in a corridor. A typical one. You begin looking for stuff.\n\n\n\nThere is an open screen door leading east. You don't like doors? Why not try going north, that entranceway is not blocked by one. There is an exit to the south. Don't worry, there is no door. There is an exit to the west.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, east, and west. West would take me back to the living room, and north would take me to the bathroom. I should go east to reach the backyard.) E",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Backyard =-\nI am honoured to announce that you are now in the backyard.\n\nYou can make out a patio chair. The patio chair appears to be empty. Aw, here you were, all excited for there to be things on it! You make out a patio table. But oh no! there's nothing on this piece of trash. Aw, here you were, all excited for there to be things on it! You can make out a closed BBQ.\n\nThere is an open barn door leading north. There is an open screen door leading west. There is an exit to the south. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, and west. South would take me to the garden, but I'm here for the BBQ. Before I can use the BBQ, I need to open it.) OPEN BBQ",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open the BBQ.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now that the BBQ is open, I can grill the banana.) COOK CHOPPED BANANA WITH BBQ",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou grilled the banana.\n\n\nYour score has just gone up by one point.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've grilled the banana. The next step is to slice the green apple. Slicing requires the knife, which I dropped in the kitchen. I should head back to the kitchen and get the knife.) W",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Corridor =-\nYou find yourself in a corridor. A typical one. You begin looking for stuff.\n\n\n\nThere is an open screen door leading east. You don't like doors? Why not try going north, that entranceway is not blocked by one. There is an exit to the south. Don't worry, there is no door. There is an exit to the west.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, east, and west. East would take me back to the backyard. I should continue west to get back to the living room, and then north to reach the kitchen.) W",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Livingroom =-\nAh, the livingroom. This is some kind of livingroom, really great typical vibes in this place, a wonderful typical atmosphere. And now, well, you're in it. The room seems oddly familiar, as though it were only superficially different from the other rooms in the building.\n\nYou can see a sofa. You shudder, but continue examining the sofa. The sofa is comfy. But oh no! there's nothing on this piece of garbage.\n\nThere is an open fiberglass door leading south. You don't like doors? Why not try going east, that entranceway is not blocked by one. There is an exit to the north. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the south, east, and north. South would take me back to the driveway. I should go north to reach the kitchen.) N",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Kitchen =-\nYou are in a kitchen. A typical one.\n\nYou can see an opened fridge nearby. The fridge contains a raw pork chop, a carrot, a yellow bell pepper and a red bell pepper. You check the price tag glued to the fridge. Three hundred bucks?! That's ridiculous! I got this friend who could get you one of those for 50 bucks! You can make out a closed oven, which looks conventional, in the corner. You see a table. You wonder idly who left that here. The table is massive. On the table you make out a cookbook. Huh, weird. You can see a counter. What a coincidence, weren't you just thinking about a counter? The counter is vast. But the thing is empty. You rest your hand against a wall, but you miss the wall and fall onto a stove. But there isn't a thing on it.\n\nThere is a closed plain door leading west. You don't like doors? Why not try going south, that entranceway is not blocked by one.\n\nThere is a knife, a red apple and a green bell pepper on the floor.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see the knife on the floor. I dropped it earlier, and now I need it to slice the green apple.) GET KNIFE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou're carrying too many things already.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've reached the carrying limit again. This time, I'll drop the yellow onion, since I don't need it right now.) DROP YELLOW ONION",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou drop the yellow onion on the ground.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now I should have enough room in my inventory to pick up the knife.) GET KNIFE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou pick up the knife from the ground.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've got the knife. Now I can slice the green apple.) SLICE GREEN APPLE WITH KNIFE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou slice the green apple.\n\n\nYour score has just gone up by one point.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Next, I'm supposed to roast the green apple. Roasting involves the oven, which is here in the kitchen. But first, I should re-read the recipe to double-check the next steps.) READ COOKBOOK",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open the copy of \"Cooking: A Modern Approach (3rd Ed.)\" and start reading:\n\nRecipe #1\n---------\nGather all following ingredients and follow the directions to prepare this tasty meal.\n\nIngredients:\nbanana\n  green apple\n  yellow onion\n\nDirections:\nchop the banana\n  grill the banana\n  slice the green apple\n  roast the green apple\n  dice the yellow onion\n  grill the yellow onion\n  prepare meal\n\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've re-read the recipe. Now I should roast the green apple. I'll use the oven.) COOK SLICED GREEN APPLE WITH OVEN",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou roasted the green apple.\n\n\nYour score has just gone up by one point.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Next, I need to dice the yellow onion. I dropped the yellow onion earlier, so I should pick it up first.) GET YELLOW ONION",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou're carrying too many things already.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've reached the carrying limit again. This time, I'll drop the knife, since I don't need it right now.) DROP KNIFE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou drop the knife on the ground.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now I should have enough room in my inventory to pick up the yellow onion.) GET YELLOW ONION",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou pick up the yellow onion from the ground.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've got the yellow onion. Now I should dice it, but I need the knife again.) GET KNIFE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou're carrying too many things already.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've reached the carrying limit again. This time, I'll drop the banana, since I've already grilled it and won't need it again until the final step.) DROP GRILLED BANANA",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou drop the banana on the ground.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now I should have enough room in my inventory to pick up the knife.) GET KNIFE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou pick up the knife from the ground.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've got the knife. Now I can dice the yellow onion.) DICE YELLOW ONION WITH KNIFE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou dice the yellow onion.\n\n\nYour score has just gone up by one point.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Next, I'm supposed to grill the yellow onion. Grilling involves the BBQ, which is in the backyard. But before I go, I should pick up the banana again, since I'll need it for the final step.) GET BANANA",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou're carrying too many things already.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've reached the carrying limit again. This time, I'll drop the knife, since I won't need it again.) DROP KNIFE",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou drop the knife on the ground.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now I should have enough room in my inventory to pick up the banana.) GET BANANA",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou pick up the banana from the ground.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've got the banana. Now I should head to the backyard to grill the yellow onion.) S",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Livingroom =-\nAh, the livingroom. This is some kind of livingroom, really great typical vibes in this place, a wonderful typical atmosphere. And now, well, you're in it. The room seems oddly familiar, as though it were only superficially different from the other rooms in the building.\n\nYou can see a sofa. You shudder, but continue examining the sofa. The sofa is comfy. But oh no! there's nothing on this piece of garbage.\n\nThere is an open fiberglass door leading south. You don't like doors? Why not try going east, that entranceway is not blocked by one. There is an exit to the north. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the south, east, and north. North would take me back to the kitchen. I should go east to reach the corridor, and then head to the backyard.) E",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Corridor =-\nYou find yourself in a corridor. A typical one. You begin looking for stuff.\n\n\n\nThere is an open screen door leading east. You don't like doors? Why not try going north, that entranceway is not blocked by one. There is an exit to the south. Don't worry, there is no door. There is an exit to the west.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, east, and west. West would take me back to the living room. I should go east to reach the backyard.) E",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Backyard =-\nI am honoured to announce that you are now in the backyard.\n\nYou can make out a patio chair. The patio chair appears to be empty. Aw, here you were, all excited for there to be things on it! You make out a patio table. But oh no! there's nothing on this piece of trash. Aw, here you were, all excited for there to be things on it! You can make out an opened BBQ. Empty! What kind of nightmare TextWorld is this?\n\nThere is an open barn door leading north. There is an open screen door leading west. There is an exit to the south. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, and west. West would take me back to the corridor. I'm here to grill the yellow onion, and the BBQ is already open. Let's do it.) COOK DICED YELLOW ONION WITH BBQ",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou grilled the yellow onion.\n\n\nYour score has just gone up by one point.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've completed all the steps except the final one. Now I should head back to the kitchen and prepare the meal.) W",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Corridor =-\nYou find yourself in a corridor. A typical one. You begin looking for stuff.\n\n\n\nThere is an open screen door leading east. You don't like doors? Why not try going north, that entranceway is not blocked by one. There is an exit to the south. Don't worry, there is no door. There is an exit to the west.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the north, south, east, and west. East would take me back to the backyard. I should go west to reach the living room, and then head to the kitchen.) W",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Livingroom =-\nAh, the livingroom. This is some kind of livingroom, really great typical vibes in this place, a wonderful typical atmosphere. And now, well, you're in it. The room seems oddly familiar, as though it were only superficially different from the other rooms in the building.\n\nYou can see a sofa. You shudder, but continue examining the sofa. The sofa is comfy. But oh no! there's nothing on this piece of garbage.\n\nThere is an open fiberglass door leading south. You don't like doors? Why not try going east, that entranceway is not blocked by one. There is an exit to the north. Don't worry, there is no door.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I see exits to the south, east, and north. South would take me back to the driveway. I should go north to reach the kitchen.) N",
+            "role": "assistant"
+        },
+        {
+            "content": "\n\n-= Kitchen =-\nYou are in a kitchen. A typical one.\n\nYou can see an opened fridge nearby. The fridge contains a raw pork chop, a carrot, a yellow bell pepper and a red bell pepper. You check the price tag glued to the fridge. Three hundred bucks?! That's ridiculous! I got this friend who could get you one of those for 50 bucks! You can make out a closed oven, which looks conventional, in the corner. You see a table. You wonder idly who left that here. The table is massive. On the table you make out a cookbook. Huh, weird. You can see a counter. What a coincidence, weren't you just thinking about a counter? The counter is vast. But the thing is empty. You rest your hand against a wall, but you miss the wall and fall onto a stove. But there isn't a thing on it.\n\nThere is a closed plain door leading west. You don't like doors? Why not try going south, that entranceway is not blocked by one.\n\nThere is a knife, a red apple and a green bell pepper on the floor.\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I'm back in the kitchen. I should re-read the cookbook one last time to make sure I've completed all the steps.) READ COOKBOOK",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou open the copy of \"Cooking: A Modern Approach (3rd Ed.)\" and start reading:\n\nRecipe #1\n---------\nGather all following ingredients and follow the directions to prepare this tasty meal.\n\nIngredients:\nbanana\n  green apple\n  yellow onion\n\nDirections:\nchop the banana\n  grill the banana\n  slice the green apple\n  roast the green apple\n  dice the yellow onion\n  grill the yellow onion\n  prepare meal\n\n\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(I've re-read the recipe. It looks like I've completed all the steps except the final one, which is to prepare the meal. I have all the ingredients, so I'm ready to do that now.) PREPARE MEAL",
+            "role": "assistant"
+        },
+        {
+            "content": "\nAdding the meal to your inventory.\n\n\nYour score has just gone up by one point.\n\n> ",
+            "role": "user"
+        },
+        {
+            "content": "(Now I should be able to eat the meal and complete the game.) EAT MEAL",
+            "role": "assistant"
+        },
+        {
+            "content": "\nYou eat the meal. Not bad.\n\n\nYour score has just gone up by one point.\n\n\n                                                       *** The End ***\n\nYou scored 10 out of a possible 10, in 86 turns.\n\n\nWould you like to RESTART, RESTORE a saved game, QUIT or UNDO the last command?\n> ",
+            "role": "user"
+        }
+    ],
+    "model": "llama3.1-405b-instruct-fp8",
+    "outcome": "won",
+    "seed": 27,
+    "turns": 86,
+    "tw_make_args": [
+        "tw-cooking",
+        "--recipe",
+        "3",
+        "--take",
+        "2",
+        "--go",
+        "12",
+        "--open",
+        "--cook",
+        "--cut",
+        "--drop"
+    ]
+}
