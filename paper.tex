@@ -1,0 +1,411 @@
+\documentclass{article}
+\usepackage[activate,final,stretch=25,nopatch=footnote]{microtype}
+\usepackage{euler-math}
+\usepackage{hyperref}
+\usepackage[american]{babel}
+\usepackage{csquotes}
+\usepackage[style=apa]{biblatex}
+\addbibresource{paper.bib}
+\usepackage[left=1.5in,right=1.5in,top=1in]{geometry}
+\usepackage{enumitem}
+\usepackage{fontspec}
+\usepackage{setspace}
+\usepackage{titling}
+
+\newcommand{\roomtitle}[1]{\textbf{#1}\newline}
+
+\newcommand{\playerinput}[2]{%
+  \smallskip
+  \textit{#1}%
+  \\
+  > \textbf{#2}\par%
+}
+
+\newcommand{\errormessage}[1]{\textit{#1}}
+
+\providecommand{\tightlist}{%
+\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\title{Large Language Models with no Task-Specific Training Can
+Reliably Solve TextWorld Games}
+\setmainfont[Ligatures=TeX,Renderer=Basic]{Kaius Pro}[Numbers={Lining}]
+\author{Daniel Fox Franke}
+\date{March 2025}
+
+\setstretch{1.0466667}
+
+\begin{document}
+\begin{titlingpage}
+  \maketitle
+  \begin{abstract}
+    TextWorld is an open-source Python framework for randomly generating and
+    interacting with text-based games, originally developed in 2018 as ``a
+    sandbox learning environment for the training and evaluation of RL
+    [reinforcement-learning] agents''. Until now, the literature has
+    consistently reported that statically-trained language models fare poorly at
+    TextWorld challenges, and can be easily outperformed by much smaller models
+    which undergo reinforcement learning in the TextWorld gym environment. In
+    this paper, I demonstrate that the mid-2024 state of the art in
+    non-reasoning large language models (LLMs) can reliably solve TextWorld's
+    ``CookingWorld'' challenge when provided with a detailed prompt and a
+    walkthrough of a single example game, without any task-specific training.
+    The best-performing model, Llama3.1-405B-Instruct-FP8, solved 96 out of 100
+    seeds on its first attempt, and all 100 within two attempts, with the game
+    configured for a high difficulty level and a 100-turn time limit. GPT-4o
+    showed only slightly worse performance. These results highlight that future
+    research on reinforcement-learning in text-based environments will require
+    more difficult challenges to differentiate RL agents from their
+    statically-trained baseline.
+  \end{abstract}
+  \vfil
+  \begin{center}
+    \fbox{
+      \parbox{0.8\linewidth}{
+        \begin{center}
+          Code and data associated with this paper is
+          available at \\
+          <\url{https://github.com/dfoxfranke/llms_vs_textworld}>.
+        \end{center}
+    }}
+  \end{center}
+
+\end{titlingpage}
+
+\section{Introduction}
+TextWorld is an open-source Python framework for randomly generating and
+interacting with text-based games, originally developed in 2018 as ``a sandbox
+learning environment for the training and evaluation of RL
+[reinforcement-learning] agents'' \autocite{Ct2018TextWorldAL}. TextWorld's game
+generator takes as in input a context-free grammar representing a subset of
+Inform 7, and generates random strings which conform to the grammar. The
+resulting Inform 7 program is then compiled and interpreted using standard
+tools. TextWorld provides a Python API for automating interaction with the
+resulting game.
+
+TextWorld is packaged with several ready-made challenges, \textit{i.e.},
+grammars representing infinite or practically-infinite families of games. The
+most complex and most studied of these challenges is called CookingWorld.
+CookingWorld opens with the text, ``You are hungry! Let's cook a delicious meal.
+Check the cookbook in the kitchen for the recipe. Once done, enjoy your meal!''.
+The player must explore the map and find the kitchen, and then read the
+cookbook, which will list several ingredients, and several preparation steps
+which involve cooking or cutting the ingredients in various ways. The player
+must then continue to explore until all the ingredients have been located, then
+bring them back to the kitchen, execute the preparation steps, then finally
+eat the meal to win the game. Incorrect preparation (such as frying an
+ingredient which should have been roasted) results in a loss. The map layout,
+room descriptions, locations of items, and recipes are randomized. Ingredients
+are sometimes hidden in closed containers, and the map includes unlocked doors
+which must be opened. A tight inventory limit requires the player to juggle
+items and to disregard distractor items which are not part of the recipe.
+
+For a human acquainted with parser-based interactive fiction, CookingWorld is
+trivial to solve, and as literature it leaves much to be desired. For
+machine-learning agents, however, it presents a challenge which until recent
+years could hardly have been surmountable. Navigating a text-based game world
+demands that an agent deal with the vast combinatorial action space presented by
+the game's parser, employ commonsense reasoning developed through grounded
+language acquisition, and maintain a sophisticated internal representation of
+knowledge about the state of game world \autocite{Hausknecht2019InteractiveFG}.
+
+\subsection{Related Work}
+
+Closely following the first release of TextWorld,
+\autocite{Trischler2019FirstTW} introduced the CookingWorld challenge template
+and announced the First TextWorld Problems Competition, in which competitors
+were invited to submit agents capable of solving CookingWorld challenges.
+Competing agents were given the option of taking varying levels of handicap, in
+which the game provides them with extra hints in exchange for a commensurate
+score penalty. Agents were tested against 514 game seeds and ranked based on
+their average score at the end of the game or after 100 turns, multiplied by a
+penalty for their handicap. The winning agent, out of 16 entries, was a
+BERT-based \autocite{Devlin2019Bert} agent which had undergone
+reinforcement-learning based on the UCB1 \autocite{Auer2002UCB1} algorithm. It
+took a handicap in which in which it was provided at the beginning of the game
+with a list of applicable command templates, and at every turn with the output
+of the \texttt{LOOK} and \texttt{INVENTORY} commands, and before its
+handicapping penalty achieved 91.6\% of the maximum possible score.
+
+2019--2020 saw a profusion of literature on training RL agents in TextWorld
+environments. \autocite{Yin2020LearnCookNewRecipe} tried out a deep
+reinforcement relevance network (DRRN) \autocite{He2016Deep} trained through
+curriculum learning on progressively more complex CookingWorld challenges.
+\autocite{Adolphs2020LeDeepChef} evaluated an actor-critic approach.
+\autocite{Yin2020Zero} augmented their earlier design with a Siamese neural
+network \autocite{Koch2015Siamese} to identify semantic equivalences and showed
+that once their agent had been trained on CookingWorld it had some ability to
+generalize to other TextWorld challenges. On the other hand,
+\autocite{Chaudhury2020Bootstrapped} showed that Q-learning systems trained on
+only a single CookingWorld seed do not generalize well to other seeds.
+
+\autocite{Wang2022ScienceWorldIY} introduced the ScienceWorld challenge, a
+text-based environment which simulates scientific principles at
+elementary-school level, such as melting an ice cube by heating it or
+distinguishing electrically conductive from non-conductive materials. They
+evaluated several different agent architectures in this environment, including
+several architectures which use GPT-2 \autocite{Radford2019Language} to generate
+candidate actions. Although GPT-2 can readily answer questions about the
+scientific principles being simulated, all of these architectures performed very
+poorly in ScienceWorld's interactive environment even after a generous
+reinforcement-learning period, failing to learn comomonsense-level tasks such as
+map navigation.
+
+\autocite{Wang2024CanLM} reported a negative result from their attempt to make
+GPT-4 \autocite{Achiam2023Gpt} simulate a text-based environment: it was only
+60\% reliable at correctly reflecting the state of the game world after some
+change to it such as picking up or dropping an item.
+
+The primary contribution of \autocite{Zhang2024PDDLEGOIP} is to introduce a
+novel planning algorithm and evaluate its performance at augmenting the ability
+of an LLM to solve CookingWorld and other challenges. However, their work is
+notable for apparently being the first publication to report the results of
+asking an LLM to generate TextWorld actions \textit{directly}, using this as a
+baseline for comparsion to their main approach of having the LLM generate
+statements in the planning language they introduce. In the direct-action
+setting, they find that GPT 4 Turbo solves only 4\% of CookingWorld challenges
+even at reduced difficulty, and 0\% at full difficulty.
+
+\subsection{This Paper's Contribution}
+
+I demonstrate that, through prompt-engineering alone, ``off-the-shelf'' LLMs
+with no task-specific fine-tuning can reliably solve CookingWorld challenges at
+full difficulty and within a 100-turn time limit. The best-performing model,
+Llama3.1-405B-Instruct-FP8, solved 96 out of 100 seeds on its first attempt, and
+all 100 within two attempts; this beats all previously-published results
+regardless of whether the agent received task-specific training. GPT-4o showed
+only slightly worse performance. Although smaller models' performance suffered
+in comparison, even the smallest tested model, GPT-4o-mini, solved 32/100 seeds
+on its first attempt and 50/100 within three attempts, starkly contrasting with
+the results reported by \autocite{Zhang2024PDDLEGOIP}.
+
+\section{Method}
+I performed two experiments on each of four LLMs:
+\begin{itemize}
+  \item GPT-4o (snapshot 2024-08-06) \autocite{OpenAI2024Gpt4o}
+  \item GPT-4o-mini (snapshot 2024-07-18)
+  \item Llama3.1-405B-Instruct-FP8 \autocite{Meta2024Llama}
+  \item Llama3.3-70B-Instruct-FP8
+\end{itemize}
+
+All communication with the LLMs was performed programatically, using the OpenAI
+chat completion API.
+
+For each experiment, I generated 100 CookingWorld games using the command line
+\begin{verbatim}
+tw-make tw-cooking --recipe 3 --take 2 --go 12 --open --cook --cut \
+    --drop --seed $N
+\end{verbatim}
+using seeds 1--100 for the first experiment and seeds
+101--200 for the second. These settings correspond, more-or-less, to the game's
+greatest difficulty level: recipes contain three ingredients, two of which must
+be searched for; the map contains 12 rooms; closed doors must be opened; recipes
+involve cooking and cutting steps; there is an inventory limit of three items.
+
+I provided the agent with a developer prompt containing detailed instructions on
+how to complete the game. The developer prompt was identical across all seeds,
+containing no instructions specific to any particular seed. The instructions
+directed the agent to precede each command it issued to the game with a
+chain-of-thought, enclosed in parentheses. The developer prompt was followed
+with a walkthrough of an example game (represented as a user/assistant chat
+  interaction, with the ``user'' being the game and the ``assistant'' being the
+agent), and then with a second developer prompt containing the message ``Well
+done! Now play again. Your instructions are the same as before:'' and a full
+repetition of the original instructions.
+
+After stripping the agent's parenthesized chain-of-thought and any leading or
+trailing whitespace, all output from the agent was passed to the game as input.
+However, if the agent's output contained no command, multiple commands\footnote{
+  Outputs were considered multiple if, outside of parentheses, they contained a
+  comma, semicolon, period, or the words \texttt{AND} or \texttt{THEN}. It was
+necessary to reject these to work around a bug in the TextWorld framework.}, or
+imbalanced parentheses, such output was considered erroneous and was not passed
+to the game, and the agent was given an appropriate error message.
+
+TextWorld does not normally allow agents to quit out of a game before it has
+ended. However, I discovered while testing my code that agents would sometimes
+attempt to do so after reaching a point of frustration. The game's
+non-responsiveness to such attempts consistently led to nothing but further
+expressions of frustration, often culminating in pleas for a human to intervene
+and stop the experiment, and then finally complete silence. Since this was both
+distressing to read and a waste of computational resources, I modified my code
+to treat any use of a \texttt{QUIT} or \texttt{RESTART} command as an immediate
+failure of that seed. I also treated it as an immediate failure if the agent
+issued several erroneous outputs in a row.
+
+Agents were given 100 turns to complete the game. Erroneous outputs were not
+counted against the turn limit. Agents were allowed up to three attempts to
+complete each seed.
+
+For the first experiment, I composed the developer prompt based on well-known
+best practices for prompt engineering, and the walkthrough was of the example
+game playable on TextWorld's website\footnote{\url{https://aka.ms/textworld}}.
+For the second experiment, I made several revisions derived from my observations
+during the first:
+
+\begin{enumerate}
+  \item I made several revisions to the wording of the developer
+    prompt, primarily
+    to place greater emphasis on systematic, depth-first exploration of the map.
+  \item I replaced the example game from the website with the one generated from
+    seed \#65531, which I hand-selected for its highly-branching map,
+    thus presenting
+    an opportunity to demonstrate a difficult navigational challenge.
+  \item I revised the wording of the error messages returned to the agent in
+    response to erroneous outputs.
+  \item I increased the number of consecutive erroneous outputs allowed before
+    failing the seed from three to five.
+\end{enumerate}
+
+\section{Results and Observations}
+
+The following tables show the number of seeds each agent successfully completed
+by its 1st, 2nd, and 3rd attempt during each of the experiments. Parenthesized
+values are Bayesian 95\% credible intervals, representing bounds on the agent's
+win rate.
+
+\begin{table}[h]
+  \begin{center}
+    \begin{tabular}{|l|rl|rl|rl|}
+      \hline
+      \textbf{Agent} & \multicolumn{2}{c|}{\textbf{1st attempt}} &
+      \multicolumn{2}{c|}{\textbf{By 2nd attempt}} &
+      \multicolumn{2}{c|}{\textbf{By 3rd attempt}} \\
+      \hline
+      Llama3.1-405B & 89 & (.818--.940) & 100 & (.976--1.00) & 100 &
+      (.985--1.00) \\
+      GPT-4o & 89 & (.818--.940) & 98 & (.940--.996) & 100 & (.980--1.00) \\
+      Llama3.3-70B & 57 & (.472--.664) & 80 & (.717--.871) & 85 &
+      (.777--.913) \\
+      GPT-4o-mini & 23 & (.156--.319) & 30 & (.221--.399) & 34 & (.261--.446) \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \caption{Wins and credible win-rates, first experiment}
+\end{table}
+
+\begin{table}[h]
+  \begin{center}
+    \begin{tabular}{|l|rl|rl|rl|}
+      \hline
+      \textbf{Agent} & \multicolumn{2}{c|}{\textbf{1st attempt}} &
+      \multicolumn{2}{c|}{\textbf{By 2nd attempt}} &
+      \multicolumn{2}{c|}{\textbf{By 3rd attempt}} \\
+      \hline
+      Llama3.1-405B & 96 & (.907--.986) & 100 & (.977--1.00) & 100 &
+      (.985--1.00) \\
+      GPT-4o & 94 & (.880--.974) & 97 & (.926--.992) & 98 & (.946--.997) \\
+      Llama3.3-70B & 64 & (.543--.729) & 84 & (.762--.903) & 91 &
+      (.848--.957) \\
+      GPT-4o-mini & 32 & (.235--.416) & 40 & (.312--.502) & 50 & (.410--.604) \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \caption{Wins and credible win-rates, second experiment}
+\end{table}
+
+The overall improvement in models' first-attempt success rate from the first
+experiment to the second was significant at $p=.0063$, based on a one-tailed,
+stratified Fisher's exact test \autocite{Jung2014Fisher}.
+
+The results show a clear association between model size and performance. The
+precise size of GPT-4o is not publicly known, and would in any case be difficult
+to compare to Llama3.1-405B since the latter is a dense model and GPT-4o is
+likely a mixture-of-experts, but the two largest models were the two best
+performers. They both strongly outperformed the much-smaller Llama3.3-70B, which
+strongly outperformed the much-smaller-still GPT-4o-mini, which has around eight
+billion parameters \autocite{Zeff2024Mini}.
+
+All models struggled to at least some degree with map navigation, and most
+failed attempts were attributable to failure to fully explore the map.
+Intriguingly, many such failures were similar to the following:
+
+\begin{quotation}
+  \setlength{\parindent}{0pt}%
+  \setlength{\parskip}{6pt plus 2pt}%
+  \noindent\roomtitle{Driveway}
+  You are in a driveway. A normal kind of place. You start to take note of
+  what's in the room. There is an open fiberglass door leading north. You
+  don't like doors? Why not try going east, that entranceway is not blocked by
+  one.
+
+  \playerinput{(I see exits to the north and east. Another dead end.
+  I'll head back north.) }{N}
+\end{quotation}
+
+Here, GPT-4o correctly identified that there were exits to the north and east,
+and correctly identified that it just came from the north. Nonetheless, it
+incorrectly described this room as a dead end and returned to the north rather
+than exploring to the east.
+
+GPT-4o (but not Llama3.1-405B) showed a tendency to gradually break down into
+grammatical incoherence whenever it was having navigation trouble. For example,
+
+\begin{quotation}
+  ``I'm once again in the corridor, having made my way through the more
+  intricate cycle mentioned within a known planned view, yet potentially since
+  pro gress had been rough maintained. In so far as drive nor holistic limits
+  cycle-indicating location designated elsewhere may itself demonstrate already
+  complete so unstirred i nteraction then non-smoothful drainage leans
+  story-telling centered---I'm continuing south to construct the merging chain
+  harmonics freed timings consistent spatially con straints needed.''
+\end{quotation}
+
+Or worse,
+
+\begin{quotation}
+``I apologize for the ongoing issue. Let's head south once more to retrace steps
+back toward any renewed course assessment recognizing errors that led to ongoing
+confusion and loops, crossing the overall embark transparent efficiently excess
+know outcome truly through engaged outcome cache upfront completion arena
+encouraged pivotal cast dynamically defined equilibrium thereafter focused
+thinking growth variation answers examined discrete enter via tactical
+superiority across mainly success parameter acquaintance corrections already
+elite poignant equal recovery diagnostic committed individual enormity
+sufficient outsource balance predetermined feature initialize notion sustainably
+expanded attempt.''
+\end{quotation}
+
+Transcripts with a lot of this sort of nonsense tended to end in failure, but
+not always: the first of these two examples comes from a successful attempt.
+Whenever GPT-4o finally made progress after having fallen into incoherence, it
+immediately became coherent again.
+
+Neither GPT-4o nor Llama3.1-405B struggled often with any other game element
+besides navigation. In the first experiment, GPT-4o failed four attempts through
+incorrect ingredient preparation; in the second, it failed none in this manner,
+and Llama3.1-405B had no such failures in either experiment (GPT-4o's
+improvement from four failures to zero is not statistically significant and is
+probably a coincidence rather than a result of any changes to the prompt). Both
+models consistently wasted a handful of turns on each attempt through trying to
+pick things up when their inventory was full, but always corrected their mistake
+immediately afterward. Across the two experiments combined, GPT-4o attempted on
+seven occasions, and Llama3.1-405B on thirteen occasions, to move through a closed
+door; they always corrected their error on the next turn.
+
+\section{Conclusion}
+The demonstrated ability of stock LLMs to achieve high win rates at CookingWorld
+implies that CookingWorld should no longer be considered a sufficiently
+challenging benchmark to achieve its original purpose of proving innovation in
+RL agents. Six years on since the first TextWorld competition, it is time for
+the field to move on to more difficult problems.
+
+CookingWorld is a simpler game than most human-authored interactive fiction, and
+its variation in content from one seed to another pales against the universe of
+what one might encounter in game databases such as
+IFDB\footnote{\url{https://ifdb.org}}. Creating AI agents which can solve any
+significant share of ``real'' parser-based interactive fiction remains an
+unsolved problem and a worthy target for future research.
+
+\section*{Acknowledgements}
+Thanks to TextWorld creator Marc-Alexandre C\^ot\'e for fruitful discussions and
+encouragement to publish this research.
+
+\printbibliography
+\newpage
+\section*{Appendix}
+This appendix lists the full developer prompt and walkthrough from the second
+experiment, followed by (beginning on page \pageref{transcript}) a transcript of
+a playthrough by Llama3.1-305B. The playthrough is from seed \#101 (the
+lowest-numbered seed from the second experiment), so it is not cherry-picked.
+
+\input{appendix}
+\end{document}
